@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import UserList from './UserList'
 import Chip from './Chip'
 
 export default function Body() {
+    const dispatch = useDispatch()
     const [input, setInput] = useState('')
     const data = useSelector(state => state.chip.items)
     const [list, setList] = useState([])
@@ -17,7 +18,8 @@ export default function Body() {
         const chipRes = data.filter((item) => { return item.inlist === false })
         setList(res)
         setChipList(chipRes)
-    }, [data, input])
+        setInput('')
+    }, [data])
 
     const handleChange = (value) => {
         setInput(value)
@@ -31,11 +33,11 @@ export default function Body() {
         <div className="flex flex-col p-4 w-full">
             <h1 className="text-4xl font-semibold text-blue-800 self-center">Pick Users</h1>
             <div className="mt-20 self-center w-4/6">
-                <div className="w-full h-fit flex flex-wrap">
+                <div className="w-full h-fit flex flex-wrap items-end">
                     {
-                        chipList.map((item) => {
+                        chipList.map((item, i) => {
                             if (item.inlist === false) {
-                                return <div key={item.id} className='m-2'>
+                                return <div key={item.id} className='m-2' tabIndex={i + 1}>
                                     <Chip id={item.id} name={item.username} color={item.color} />
                                 </div>
                             }
@@ -46,8 +48,13 @@ export default function Body() {
                         <input value={input}
                             type="text"
                             placeholder="Add new user..."
-                            className="w-full bg-inherit border-none focus: outline-none text-lg font-medium "
-                            onChange={e => handleChange(e.target.value)} />
+                            className="w-full bg-inherit mb-3.5 focus: outline-none "
+                            onChange={e => handleChange(e.target.value)}
+                            onKeyDown={e => {
+                                if (chipList.length && e.target.value === "" && e.key === 'Backspace') {
+                                    dispatch({ type: 'chip/addChip', payload: chipList[chipList.length - 1].id })
+                                }
+                            }} />
                         <UserList list={list} />
                     </div>
                 </div>
